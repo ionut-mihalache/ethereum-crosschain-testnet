@@ -13,14 +13,19 @@ In normal settings for experiments, you dont need to modify the accounts or prec
 
 ## Run the blockchain nodes
 
-`python poa-deploy.py start [workers param]`
+`python poa-deploy.py start [workers param] [chains param]`
 
-## How to supply workers param:
+## How to supply chains and workers params:
 
-### Start from a node and counting up with a number of nodes:
+### Start a single chain of 8 workers from a cluster node and counting up with a number of nodes:
 `python poa-deploy.py start --start-worker 30 --num-workers 8`
 
-This will deploy 8 nodes starting from worker-030, worker-031, ...., worker-037
+This will deploy 8 nodes starting from worker-030, worker-031, ...., worker-037 and will default with a single chain of 8 worker nodes 
+
+### Start multiple chains of 8 worker nodes:
+`python poa-deploy.py start --start-worker 30 --num-workers 8 --num-chains 2`
+
+This will deploy 2 independent chains with 8 workers nodes each starting from worker-030, worker-031, ...., worker-037
 
 ### Specify your own list of ip or hostnames:
 
@@ -47,5 +52,4 @@ Optional, you dont need to do it because the script will automatically do it eve
 
 ## Acknowledgement
 Reconfigured and built from:
-  * https://github.com/ibrahim4529/ethereum-poa-docker
-  * https://github.com/KunPengRen/ethereum-poa-docker
+  * https://github.com/minhhn2910/ethereum-poa-testnet
