@@ -10,6 +10,7 @@ import argparse
 # the commands following should be changed according to the docker swarm configuration
 # /data/$user/ethereum-poa-docker
 
+# some changes
 
 # remove_chain_nodes_command = "ssh worker-0{} 'cd /data/minh/ethr-did/ && rm -rf ./poa-docker'"
 abs_path = os.path.dirname(os.path.abspath(__file__))

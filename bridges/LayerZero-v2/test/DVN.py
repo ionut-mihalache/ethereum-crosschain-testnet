@@ -144,6 +144,8 @@ def execute_dvn_verify(
     packet_header,
     payload_hash,
 ):
+    print("packet_header:", packet_header)
+    print("payload_hash:", payload_hash)
     for required_dvn in required_dvns:
         # point to contract object
         dvn = required_dvn["dvn"]
@@ -158,6 +160,7 @@ def execute_dvn_verify(
         else:
             verify_args = [packet_header, payload_hash]
         verify_calldata = receive_lib.encodeABI(fn_name=verify_fn, args=verify_args)
+        print("verify_calldata:", verify_calldata)
         verify_hash = dvn.caller.hashCallData(
             required_dvn["id"],
             receive_lib.address,

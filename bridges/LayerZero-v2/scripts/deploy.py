@@ -55,9 +55,32 @@ def set_signers(web3, dvns=2, dvn_workers=2):
                 {index: {"address": signer_address, "private_key": signer_key}}
             )
             current_address += 1
-    # also add two test accounts for txs
-    account1 = {"address": array[0]["address"], "private_key": array[0]["private_key"]}
-    account2 = {"address": array[1]["address"], "private_key": array[1]["private_key"]}
+    # also test accounts for txs
+    accts_nr = 50
+    accts = []
+    for i in range(accts_nr):
+        accts.append({"address": array[i]["address"], "private_key": array[i]["private_key"]})
+    # account1 = {"address": array[0]["address"], "private_key": array[0]["private_key"]}
+    # account2 = {"address": array[1]["address"], "private_key": array[1]["private_key"]}
+    # account3 = {"address": array[2]["address"], "private_key": array[2]["private_key"]}
+    # account4 = {"address": array[3]["address"], "private_key": array[3]["private_key"]}
+    # account5 = {"address": array[4]["address"], "private_key": array[4]["private_key"]}
+    # account6 = {"address": array[5]["address"], "private_key": array[5]["private_key"]}
+    # account7 = {"address": array[6]["address"], "private_key": array[6]["private_key"]}
+    # account8 = {"address": array[7]["address"], "private_key": array[7]["private_key"]}
+    # account9 = {"address": array[8]["address"], "private_key": array[8]["private_key"]}
+    # account10 = {"address": array[9]["address"], "private_key": array[9]["private_key"]}
+    # account11 = {"address": array[10]["address"], "private_key": array[10]["private_key"]}
+    # account12 = {"address": array[11]["address"], "private_key": array[11]["private_key"]}
+    # account13 = {"address": array[12]["address"], "private_key": array[12]["private_key"]}
+    # account14 = {"address": array[13]["address"], "private_key": array[13]["private_key"]}
+    # account15 = {"address": array[14]["address"], "private_key": array[14]["private_key"]}
+    # account16 = {"address": array[15]["address"], "private_key": array[15]["private_key"]}
+    # account17 = {"address": array[16]["address"], "private_key": array[16]["private_key"]}
+    # account18 = {"address": array[17]["address"], "private_key": array[17]["private_key"]}
+    # account19 = {"address": array[18]["address"], "private_key": array[18]["private_key"]}
+    # account20 = {"address": array[19]["address"], "private_key": array[19]["private_key"]}
+
     print("Loaded accounts")
     accounts.update(
         {
@@ -76,8 +99,27 @@ def set_signers(web3, dvns=2, dvn_workers=2):
                 "private_key": verifierAdmin_key,
             },
             "oAppOwner": {"address": oAppOwner_address, "private_key": oAppOwner_key},
-            "test_account1": account1,
-            "test_account2": account2,
+            "test_accounts": accts
+            # "test_account1": account1,
+            # "test_account2": account2,
+            # "test_account3": account3,
+            # "test_account4": account4,
+            # "test_account5": account5,
+            # "test_account6": account6,
+            # "test_account7": account7,
+            # "test_account8": account8,
+            # "test_account9": account9,
+            # "test_account10": account10,
+            # "test_account11": account11,
+            # "test_account12": account12,
+            # "test_account13": account13,
+            # "test_account14": account14,
+            # "test_account15": account15,
+            # "test_account16": account16,
+            # "test_account17": account17,
+            # "test_account18": account18,
+            # "test_account19": account19,
+            # "test_account20": account20,
         }
     )
     return accounts

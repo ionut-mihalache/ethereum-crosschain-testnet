@@ -20,6 +20,14 @@ def execute_lzreceive(dst_web3, packets, executor_address, executor_admin):
     message = packet_sent["encodedPayload"][113:]
     executor = load_contract("Executor", executor_address, dst_web3)
 
+    print(packet_sent)
+    print(packet_received)
+    print(guid)
+    print(message)
+
+    # 85c1350d551e3ea8abb3f88557d950926d872e3335aa3d24d103fcef92a04462
+    # 010000000000000001000004d2000000000000000000000000a7edcb97b20d725b5d4dc82c0971dca2e42a482d000010e1000000000000000000000000a7edcb97b20d725b5d4dc82c0971dca2e42a482d85c1350d551e3ea8abb3f88557d950926d872e3335aa3d24d103fcef92a0446200000000000000000000000032715f1b6596dee3c8572a71bb1e0cb5f4cedbfe00000000000f4240
+
     # we don't perform any native drop, only receive
     native_drop = []
     origin = (
@@ -39,6 +47,8 @@ def execute_lzreceive(dst_web3, packets, executor_address, executor_admin):
     )
     # only admin role user can perform this transaction call
     tx_data = {"from": executor_admin["address"]}
+    print(tx_data)
+    print(execution_params)
     # first try to execute it locally to catch any possible errors
     try:
         executor.caller(tx_data).nativeDropAndExecute302(
@@ -48,10 +58,37 @@ def execute_lzreceive(dst_web3, packets, executor_address, executor_admin):
         print(repr(e))
         exit(1)
     # if no error thrown, we can safely execute it on chain
-    call_contract_fn(
+    print("lzReceive tx hash:", call_contract_fn(
         executor,
         "nativeDropAndExecute302",
         dst_web3,
         tx_data,
         (native_drop, 0, execution_params),
-    )
+    ))
+
+
+# # Online Python compiler (interpreter) to run Python online.
+# # Write Python 3 code in this online editor and run it.
+# import binascii
+
+# hex1 = b'\x85\xc15\rU\x1e>\xa8\xab\xb3\xf8\x85W\xd9P\x92m\x87.35\xaa=$\xd1\x03\xfc\xef\x92\xa0Db'.hex()
+# print(hex1)
+
+# # hex2 = b'\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x04\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa7\xed\xcb\x97\xb2\rr[]M\xc8,\tq\xdc\xa2\xe4*H-\x00\x00\x10\xe1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa7\xed\xcb\x97\xb2\rr[]M\xc8,\tq\xdc\xa2\xe4*H-\x85\xc15\rU\x1e>\xa8\xab\xb3\xf8\x85W\xd9P\x92m\x87.35\xaa=$\xd1\x03\xfc\xef\x92\xa0Db\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x002q_\x1be\x96\xde\xe3\xc8W*q\xbb\x1e\x0c\xb5\xf4\xce\xdb\xfe\x00\x00\x00\x00\x00\x0fB@'.hex()
+# hex2 = b'\x01\x00\x00\x00\x00\x00\x00\x00\x10\x00\x00\x04\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa7\xed\xcb\x97\xb2\rr[]M\xc8,\tq\xdc\xa2\xe4*H-\x00\x00\x10\xe1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa7\xed\xcb\x97\xb2\rr[]M\xc8,\tq\xdc\xa2\xe4*H-\xd2(4\xede\xdf\xf8D\x9b\xfe\x8boR\xd9\xe1\xeb\xaa\x86\xe3\xa2h]L\xf7\xdfD\xd9\xfa~a\xae\x87\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x002q_\x1be\x96\xde\xe3\xc8W*q\xbb\x1e\x0c\xb5\xf4\xce\xdb\xfe\x00\x00\x00\x00\x00\x0fB@'.hex()
+# print(hex2)
+
+# hex3 = b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x002q_\x1be\x96\xde\xe3\xc8W*q\xbb\x1e\x0c\xb5\xf4\xce\xdb\xfe\x00\x00\x00\x00\x00\x0fB@'.hex()
+# print(hex3)
+
+# int1 = [int(hex1[i:i+2],16) for i in range(0,len(hex1),2)]
+# print(int1)
+
+# int2 = [int(hex2[i:i+2],16) for i in range(0,len(hex2),2)]
+# print(int2)
+
+# int3 = [int(hex3[i:i+2],16) for i in range(0,len(hex3),2)]
+# print(int3)
+
+# header_hex = b'\x01\x00\x00\x00\x00\x00\x00\x00#\x00\x00\x04\xd2\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa7\xed\xcb\x97\xb2\rr[]M\xc8,\tq\xdc\xa2\xe4*H-\x00\x00\x10\xe1\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\xa7\xed\xcb\x97\xb2\rr[]M\xc8,\tq\xdc\xa2\xe4*H-'.hex()
+# print(header_hex)
