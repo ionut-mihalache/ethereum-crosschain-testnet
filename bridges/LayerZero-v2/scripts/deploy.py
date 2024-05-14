@@ -11,6 +11,7 @@ from collections import OrderedDict
 
 
 default_port = 8503  # first assigned port
+ws_default_port = 33444
 lz_config = "bridges/LayerZero-v2/lz_config.json"
 
 """
@@ -179,7 +180,7 @@ def deploy_contract(path, sender, web3, function_args=None):
     nonce = web3.eth.get_transaction_count(sender["address"])
     tx_data = {
         "from": sender["address"],
-        "gas": 30000000,  # This is our hard gas limit
+        "gas": 10000000,  # This is our hard gas limit
         "gasPrice": web3.eth.gas_price,  # Get Gas Price
         "nonce": nonce,
     }
@@ -215,7 +216,7 @@ def call_contract_fn(contract, function_name, sender, web3, function_args=None):
     nonce = web3.eth.get_transaction_count(sender["address"])
     tx_data = {
         "from": sender["address"],
-        "gas": 30000000,  # Trying to make it dynamic..
+        "gas": 10000000,  # Trying to make it dynamic..
         "gasPrice": web3.eth.gas_price,  # Get Gas Price
         "nonce": nonce,
     }
@@ -248,6 +249,7 @@ def call_contract_fn(contract, function_name, sender, web3, function_args=None):
 
 def get_provider(chain, docker_client):
     providers = []
+    ws_providers = []
     config_file = "./seed_data/blockchain" + str(chain) + "_config.json"
     with open(config_file) as f:
         config = json.load(f)
@@ -263,8 +265,12 @@ def get_provider(chain, docker_client):
                 .endpoint.ports[0]
                 .target_port
             )
-            if (port - default_port) // 128 == chain - 1:  # 128 = max number of nodes
+            ws_port = (
+                docker_client.service.inspect(t.service_id).endpoint.ports[2].target_port
+            )
+            if (port - default_port) // 128 == chain - 1 and (ws_port - ws_default_port) // 128 == chain - 1:  # 128 = max number of nodes
                 providers.append("http://" + hostname + ":" + str(port))
+                ws_providers.append("ws://" + hostname + ":" + str(ws_port))
                 break
     # connect to first worker in list
     worker_endpoint = providers[0]
@@ -272,7 +278,7 @@ def get_provider(chain, docker_client):
     print("Connected to worker " + worker_endpoint + "=" + str(web3.is_connected()))
     web3.middleware_onion.inject(geth_poa_middleware, layer=0)
     web3.strict_bytes_type_checking = False
-    return web3, chain_id, providers
+    return web3, chain_id, providers, ws_providers
 
 
 """
@@ -664,8 +670,8 @@ def main():
     print("Connecting to docker manager")
     docker_client = DockerClient(host="ssh://" + args.docker_manager)
     print("Connecting to source and destination chains")
-    chain1_web3, chain1_id, chain1_providers = get_provider(args.chain1, docker_client)
-    chain2_web3, chain2_id, chain2_providers = get_provider(args.chain2, docker_client)
+    chain1_web3, chain1_id, chain1_providers, chain1_ws_providers = get_provider(args.chain1, docker_client)
+    chain2_web3, chain2_id, chain2_providers, chain2_ws_providers = get_provider(args.chain2, docker_client)
 
     # first check if we don't already have a bridge between these two chains
     # search by bridge name which is a concatenation of the two chains ids in ascending order
@@ -738,6 +744,7 @@ def main():
         "contracts": chain1_contracts,
         "accounts": signers,
         "nodes": chain1_providers,
+        "ws_nodes": chain1_ws_providers,
     }
     chain2 = {
         "id": args.chain2,
@@ -746,6 +753,7 @@ def main():
         "contracts": chain2_contracts,
         "accounts": signers,
         "nodes": chain2_providers,
+        "ws_nodes": chain2_ws_providers,
     }
 
     config = output_config(bridge_name, chain1, chain2, config)

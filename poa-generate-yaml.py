@@ -90,7 +90,7 @@ def generate_nodes(chain_number=0, nodes={}):
             '--http --http.addr "0.0.0.0" --http.vhosts="*" --http.corsdomain="*" --http.port '
             + str(http_port)
             + " "
-            "--http.api debug,db,eth,net,web3,admin,personal,miner,signer:insecure_unlock_protect --networkid "
+            "--http.api db,eth,net,web3,admin,personal,miner,signer:insecure_unlock_protect --networkid "
             + str(chain_id)
             + " "
             "--unlock 0 --password /root/files/password --mine --allow-insecure-unlock --ws --ws.port "
