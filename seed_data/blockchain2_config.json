@@ -1,5 +1,5 @@
 {
     "chain_id" : 4321,
     "block_time" : 5,
-    "gas_limit" : 30000000
+    "gas_limit" : 100000000
 }
