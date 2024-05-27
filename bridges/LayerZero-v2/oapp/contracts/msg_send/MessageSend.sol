@@ -6,6 +6,7 @@ import { OApp, MessagingFee, Origin } from "../../contracts/oapp/OApp.sol";
 import { MessagingReceipt } from "../../contracts/oapp/OAppSender.sol";
 
 contract MessageSend is OApp {
+    event MessageSent(string message);
     event MessageReceived(string message);
 
     constructor(address _endpoint, address _delegate) OApp(_endpoint, _delegate) {}
@@ -27,6 +28,7 @@ contract MessageSend is OApp {
     ) external payable returns (MessagingReceipt memory receipt) {
         bytes memory _payload = abi.encode(_message);
         receipt = _lzSend(_dstEid, _payload, _options, MessagingFee(msg.value, 0), payable(msg.sender));
+        emit MessageSent(_message);
     }
 
     /**

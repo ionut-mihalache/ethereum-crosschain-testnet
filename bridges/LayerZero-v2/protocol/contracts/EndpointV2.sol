@@ -35,6 +35,7 @@ import { MessagingContext } from "./MessagingContext.sol";
 //     -payload -> message.
 //          - Rationale: The term payload is used in the context of a packet, which is a combination of the message and GUID
 contract EndpointV2 is ILayerZeroEndpointV2, MessagingChannel, MessageLibManager, MessagingComposer, MessagingContext {
+    event PacketDeliveredHash(bytes32 hash);
     address public lzToken;
 
     mapping(address oapp => address delegate) public delegates;
@@ -177,9 +178,10 @@ contract EndpointV2 is ILayerZeroEndpointV2, MessagingChannel, MessageLibManager
         bytes calldata _extraData
     ) external payable {
         // clear the payload first to prevent reentrancy, and then execute the message
-        _clearPayload(_receiver, _origin.srcEid, _origin.sender, _origin.nonce, abi.encodePacked(_guid, _message));
+        bytes32 payloadHash = _clearPayload(_receiver, _origin.srcEid, _origin.sender, _origin.nonce, abi.encodePacked(_guid, _message));
         ILayerZeroReceiver(_receiver).lzReceive{ value: msg.value }(_origin, _guid, _message, msg.sender, _extraData);
         emit PacketDelivered(_origin, _receiver);
+        emit PacketDeliveredHash(payloadHash);
     }
 
     /// @param _origin the origin of the message
