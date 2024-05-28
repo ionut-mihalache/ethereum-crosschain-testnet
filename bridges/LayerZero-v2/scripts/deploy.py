@@ -267,6 +267,7 @@ def get_contracts():
         {"PriceFeed": "bridges/LayerZero-v2/oapp/out/PriceFeed.sol/PriceFeed.json"}
     )
     paths.update({"CTKN": "bridges/LayerZero-v2/oapp/out/CTKN.sol/CTKN.json"})
+    paths.update({"MessageSend": "bridges/LayerZero-v2/oapp/out/MessageSend.sol/MessageSend.json"})
     paths.update(
         {
             "ExecutorFeeLib": "bridges/LayerZero-v2/oapp/out/ExecutorFeeLib.sol/ExecutorFeeLib.json"
@@ -541,15 +542,23 @@ def deploy_lz(src_chain, dst_chain, web3, contracts, signers, dvns, dvn_workers)
         ("CarbonToken", "CTKN", lz_endpoint.address, signers["oAppOwner"]["address"]),
     )
 
+    msg_passing = deploy_contract(
+        contracts["MessageSend"],
+        signers["oAppOwner"],
+        web3,
+        (lz_endpoint.address, signers["oAppOwner"]["address"])
+    )
+
     contracts = {
         "CTKN": ctkn.address,
+        "MessageSend": msg_passing.address,
         "ReceiveUln302": receive_lib.address,
         "SendUln302": send_lib.address,
         "Executor": executor.address,
         "DVNs": sorted_dvns,
         "EndpointV2": lz_endpoint.address,
     }
-    return ctkn, contracts
+    return ctkn, msg_passing, contracts
 
 
 """
@@ -662,7 +671,7 @@ def main():
     set_signers(chain2_web3)  # will use same set returned by first call
 
     print("Deploying LayerZero bridge between chains")
-    chain1_ctkn, chain1_contracts = deploy_lz(
+    chain1_ctkn, chain1_msg_passing, chain1_contracts = deploy_lz(
         chain1_id,
         chain2_id,
         chain1_web3,
@@ -671,7 +680,7 @@ def main():
         args.dvns,
         args.dvn_workers,
     )
-    chain2_ctkn, chain2_contracts = deploy_lz(
+    chain2_ctkn, chain2_msg_passing, chain2_contracts = deploy_lz(
         chain2_id,
         chain1_id,
         chain2_web3,
@@ -688,6 +697,14 @@ def main():
     )
     wire_apps(
         chain2_ctkn, chain1_id, chain1_ctkn.address, signers["oAppOwner"], chain2_web3
+    )
+
+    print("Pairing OApp apps between src and dst chains")
+    wire_apps(
+        chain1_msg_passing, chain2_id, chain2_msg_passing.address, signers["oAppOwner"], chain1_web3
+    )
+    wire_apps(
+        chain2_msg_passing, chain1_id, chain1_msg_passing.address, signers["oAppOwner"], chain2_web3
     )
 
     print("Saving JSON Config for LayerZero setup")

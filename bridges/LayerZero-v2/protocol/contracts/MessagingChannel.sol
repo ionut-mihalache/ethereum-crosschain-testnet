@@ -148,6 +148,8 @@ abstract contract MessagingChannel is IMessagingChannel {
 
         // remove it from the storage
         delete inboundPayloadHash[_receiver][_srcEid][_sender][_nonce];
+
+        return actualHash;
     }
 
     /// @dev returns the GUID for the next message given the path

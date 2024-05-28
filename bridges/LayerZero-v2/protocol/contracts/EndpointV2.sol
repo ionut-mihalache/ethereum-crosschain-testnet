@@ -214,8 +214,9 @@ contract EndpointV2 is ILayerZeroEndpointV2, MessagingChannel, MessageLibManager
         _assertAuthorized(_oapp);
 
         bytes memory payload = abi.encodePacked(_guid, _message);
-        _clearPayload(_oapp, _origin.srcEid, _origin.sender, _origin.nonce, payload);
+        bytes32 payloadHash = _clearPayload(_oapp, _origin.srcEid, _origin.sender, _origin.nonce, payload);
         emit PacketDelivered(_origin, _oapp);
+        emit PacketDeliveredHash(payloadHash);
     }
 
     /// @dev allows reconfiguration to recover from wrong configurations
