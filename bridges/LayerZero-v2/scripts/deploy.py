@@ -8,11 +8,14 @@ import os
 from web3.middleware import construct_sign_and_send_raw_middleware
 from decimal import Decimal
 from collections import OrderedDict
+import shutil
 
 
 default_port = 8503  # first assigned port
 ws_default_port = 33444
 lz_config = "bridges/LayerZero-v2/lz_config.json"
+lz_config_bench = "../../../lz_config.json"
+lz_config_driver = "../../../layer0-driver-poc/lz_config.json"
 
 """
 @web3: web3 provider object for a chain
@@ -534,31 +537,41 @@ def deploy_lz(src_chain, dst_chain, web3, contracts, signers, dvns, dvn_workers)
         (dst_chain, receive_lib.address, 0),
     )
     # Phase 12: Deploying and configuring OFT app
+    ctkns = []
+    ctkn_addrs = []
+    msg_passings = []
+    msg_passing_addrs = []
     print("deploying OFT app")
-    ctkn = deploy_contract(
-        contracts["CTKN"],
-        signers["oAppOwner"],
-        web3,
-        ("CarbonToken", "CTKN", lz_endpoint.address, signers["oAppOwner"]["address"]),
-    )
+    for i in range(10):    
+        ctkn = deploy_contract(
+            contracts["CTKN"],
+            signers["oAppOwner"],
+            web3,
+            ("CarbonToken", "CTKN", lz_endpoint.address, signers["oAppOwner"]["address"]),
+        )
+        ctkns.append(ctkn)
+        ctkn_addrs.append(ctkn.address)
 
-    msg_passing = deploy_contract(
-        contracts["MessageSend"],
-        signers["oAppOwner"],
-        web3,
-        (lz_endpoint.address, signers["oAppOwner"]["address"])
-    )
+        msg_passing = deploy_contract(
+            contracts["MessageSend"],
+            signers["oAppOwner"],
+            web3,
+            (lz_endpoint.address, signers["oAppOwner"]["address"])
+        )
+        msg_passings.append(msg_passing)
+        msg_passing_addrs.append(msg_passing.address)
 
     contracts = {
-        "CTKN": ctkn.address,
-        "MessageSend": msg_passing.address,
+        "CTKN": ctkn_addrs,
+        "MessageSend": msg_passing_addrs,
         "ReceiveUln302": receive_lib.address,
         "SendUln302": send_lib.address,
         "Executor": executor.address,
         "DVNs": sorted_dvns,
         "EndpointV2": lz_endpoint.address,
     }
-    return ctkn, msg_passing, contracts
+
+    return ctkns, msg_passings, contracts
 
 
 """
@@ -589,24 +602,24 @@ function for ouptuting current configuration of LayerZero bridge
 
 def output_config(bridge_name, chain1, chain2, config=[]):
     if config is None:  # if no config provided, search for file
-        if os.path.isfile(lz_config):
-            with open(lz_config) as f:
-                f.seek(0, os.SEEK_END)  # go to end of file and see if it has data first
-                if f.tell():  # if current position is truish (i.e != 0)
-                    f.seek(0)  # rewind the file
-                    config = json.loads(f.read())  # and read current config
-                    print(
-                        "Found existing LayzerZero config file. Attempting to update it"
-                    )
-                else:
-                    config = []
-                    print(
-                        "No LayerZero configuration found. Attempting to create a fresh one."
-                    )
-                f.close()
-        else:
-            config = []
-            print("No LayerZero configuration found. Attempting to create a fresh one.")
+        # if os.path.isfile(lz_config):
+        #     with open(lz_config) as f:
+        #         f.seek(0, os.SEEK_END)  # go to end of file and see if it has data first
+        #         if f.tell():  # if current position is truish (i.e != 0)
+        #             f.seek(0)  # rewind the file
+        #             config = json.loads(f.read())  # and read current config
+        #             print(
+        #                 "Found existing LayzerZero config file. Attempting to update it"
+        #             )
+        #         else:
+        #             config = []
+        #             print(
+        #                 "No LayerZero configuration found. Attempting to create a fresh one."
+        #             )
+        #         f.close()
+        # else:
+        config = []
+        print("No LayerZero configuration found. Attempting to create a fresh one.")
 
     new_config = {"bridge": bridge_name, "chain1": chain1, "chain2": chain2}
     print("Updating LayerZero setup with new configuration:" + str(new_config))
@@ -650,19 +663,19 @@ def main():
         bridge_name = str(chain2_id) + "_" + str(chain1_id)
 
     config = []
-    if os.path.isfile(lz_config):
-        with open(lz_config) as f:
-            f.seek(0, os.SEEK_END)  # go to end of file
-            if f.tell():  # if current position is truish (i.e != 0)
-                f.seek(0)  # rewind the file for later use
-                config = json.loads(f.read())
-                for bridge in config:
-                    if bridge["bridge"] == bridge_name:
-                        print(
-                            "Found existing configuration for provided chains. Will skip creation of a new bridge!"
-                        )
-                        exit()
-            f.close()  # file was opened in read mode, close it for future open in write mode
+    # if os.path.isfile(lz_config):
+    #     with open(lz_config) as f:
+    #         f.seek(0, os.SEEK_END)  # go to end of file
+    #         if f.tell():  # if current position is truish (i.e != 0)
+    #             f.seek(0)  # rewind the file for later use
+    #             config = json.loads(f.read())
+    #             for bridge in config:
+    #                 if bridge["bridge"] == bridge_name:
+    #                     print(
+    #                         "Found existing configuration for provided chains. Will skip creation of a new bridge!"
+    #                     )
+    #                     exit()
+    #         f.close()  # file was opened in read mode, close it for future open in write mode
 
     # if no exisitng bridge found, then we can continue
     print("Retrieving contracts and accounts from local db")
@@ -671,7 +684,7 @@ def main():
     set_signers(chain2_web3)  # will use same set returned by first call
 
     print("Deploying LayerZero bridge between chains")
-    chain1_ctkn, chain1_msg_passing, chain1_contracts = deploy_lz(
+    chain1_ctkns, chain1_msg_passings, chain1_contracts = deploy_lz(
         chain1_id,
         chain2_id,
         chain1_web3,
@@ -680,7 +693,7 @@ def main():
         args.dvns,
         args.dvn_workers,
     )
-    chain2_ctkn, chain2_msg_passing, chain2_contracts = deploy_lz(
+    chain2_ctkns, chain2_msg_passings, chain2_contracts = deploy_lz(
         chain2_id,
         chain1_id,
         chain2_web3,
@@ -692,20 +705,28 @@ def main():
     print("Successfuly deployed Layerzero between chains!")
 
     print("Pairing OFT apps between src and dst chains")
-    wire_apps(
-        chain1_ctkn, chain2_id, chain2_ctkn.address, signers["oAppOwner"], chain1_web3
-    )
-    wire_apps(
-        chain2_ctkn, chain1_id, chain1_ctkn.address, signers["oAppOwner"], chain2_web3
-    )
+    for idx in range(len(chain1_ctkns)):
+        chain1_ctkn = chain1_ctkns[idx]
+        chain2_ctkn = chain2_ctkns[idx]
+
+        wire_apps(
+            chain1_ctkn, chain2_id, chain2_ctkn.address, signers["oAppOwner"], chain1_web3
+        )
+        wire_apps(
+            chain2_ctkn, chain1_id, chain1_ctkn.address, signers["oAppOwner"], chain2_web3
+        )
 
     print("Pairing OApp apps between src and dst chains")
-    wire_apps(
-        chain1_msg_passing, chain2_id, chain2_msg_passing.address, signers["oAppOwner"], chain1_web3
-    )
-    wire_apps(
-        chain2_msg_passing, chain1_id, chain1_msg_passing.address, signers["oAppOwner"], chain2_web3
-    )
+    for idx in range(len(chain1_msg_passings)):
+        chain1_msg_passing = chain1_msg_passings[idx]
+        chain2_msg_passing = chain2_msg_passings[idx]
+
+        wire_apps(
+            chain1_msg_passing, chain2_id, chain2_msg_passing.address, signers["oAppOwner"], chain1_web3
+        )
+        wire_apps(
+            chain2_msg_passing, chain1_id, chain1_msg_passing.address, signers["oAppOwner"], chain2_web3
+        )
 
     print("Saving JSON Config for LayerZero setup")
     # remove DVN signer accounts as we store them in the DVN structure directly
@@ -734,10 +755,14 @@ def main():
     }
 
     config = output_config(bridge_name, chain1, chain2, config)
-    with open(lz_config, "w") as outfile:
-        json.dump(config, outfile, indent=4, separators=(",", ": "))
+    with open(lz_config, "w") as outfile1, open(lz_config_bench, "w") as outfile2, open(lz_config_driver, "w") as outfile3:
+        json.dump(config, outfile1, indent=4, separators=(",", ": "))
+        json.dump(config, outfile2, indent=4, separators=(",", ": "))
+        json.dump(config, outfile3, indent=4, separators=(",", ": "))
     print("Configuration finished. LayzerZero bridge can be used!")
 
+    shutil.copyfile("./seed_data/accounts.json", "../../accounts.json")
+    shutil.copyfile("./seed_data/accounts.json", "../../layer0-driver-poc/accounts.json")
 
 if __name__ == "__main__":
     main()
