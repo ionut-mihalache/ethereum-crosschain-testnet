@@ -17,6 +17,7 @@ lz_config = "bridges/LayerZero-v2/lz_config.json"
 lz_config_bench = "../../../lz_config.json"
 lz_config_driver = "../../../layer0-driver-poc/lz_config.json"
 
+
 """
 @web3: web3 provider object for a chain
 @dvsn: number of dvns per assigned between two bridges
@@ -295,7 +296,7 @@ main function for deploying LayzerZero inside source chain
 """
 
 
-def deploy_lz(src_chain, dst_chain, web3, contracts, signers, dvns, dvn_workers):
+def deploy_lz(src_chain, dst_chain, web3, contracts, signers, dvns, dvn_workers, peer_pairs):
     # Phase 1: depoying lz endpoint
     print("Deploying LayerZero Endpoint smart contract")
     # constructor(uint32 _eid, address _owner)
@@ -542,7 +543,7 @@ def deploy_lz(src_chain, dst_chain, web3, contracts, signers, dvns, dvn_workers)
     msg_passings = []
     msg_passing_addrs = []
     print("deploying OFT app")
-    for i in range(10):    
+    for _ in range(peer_pairs):    
         ctkn = deploy_contract(
             contracts["CTKN"],
             signers["oAppOwner"],
@@ -647,6 +648,9 @@ def main():
     parser.add_argument(
         "--dvn-workers", type=int, default=2, help="Number of workers per DVN"
     )
+
+    parser.add_argument("--peer-pairs", type=int, default=1, help="Number of pairs of peers")
+
     args = parser.parse_args()
 
     print("Connecting to docker manager")
@@ -692,6 +696,7 @@ def main():
         signers,
         args.dvns,
         args.dvn_workers,
+        args.peer_pairs,
     )
     chain2_ctkns, chain2_msg_passings, chain2_contracts = deploy_lz(
         chain2_id,
@@ -701,6 +706,7 @@ def main():
         signers,
         args.dvns,
         args.dvn_workers,
+        args.peer_pairs,
     )
     print("Successfuly deployed Layerzero between chains!")
 
@@ -761,8 +767,8 @@ def main():
         json.dump(config, outfile3, indent=4, separators=(",", ": "))
     print("Configuration finished. LayzerZero bridge can be used!")
 
-    shutil.copyfile("./seed_data/accounts.json", "../../accounts.json")
-    shutil.copyfile("./seed_data/accounts.json", "../../layer0-driver-poc/accounts.json")
+    shutil.copyfile("./seed_data/accounts.json", "../../../accounts.json")
+    shutil.copyfile("./seed_data/accounts.json", "../../../layer0-driver-poc/accounts.json")
 
 if __name__ == "__main__":
     main()
