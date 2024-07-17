@@ -109,13 +109,12 @@ def get_workers(args):
 if __name__ == "__main__":
     # python3 start_eth.py start --start-worker 01 --num-workers 4 --num-chains 2 --host-file ./hostfile --skip-swarm-setup
     parser = argparse.ArgumentParser(description="Start Ethereum PoA network")
+    
     parser.add_argument("action", type=str, help="Action to perform")
     parser.add_argument("--start-worker", type=int, default=30, help="Start worker")
     parser.add_argument("--num-workers", type=int, default=4, help="Number of workers")
     parser.add_argument("--host-file", type=str, default="", help="Host file")
-    parser.add_argument(
-        "--skip-swarm-setup", action="store_true", help="Skip swarm setup"
-    )
+    parser.add_argument("--skip-swarm-setup", action="store_true", help="Skip swarm setup")
     parser.add_argument("--num-chains", type=int, default=0, help="Number of chains")
 
     args = parser.parse_args()

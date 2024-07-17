@@ -629,26 +629,15 @@ def output_config(bridge_name, chain1, chain2, config=[]):
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="LayerZero OFT deployment between two chains"
-    )
-    parser.add_argument(
-        "--chain1", type=int, default=1, help="Chain1 number for LZ deployment"
-    )
-    parser.add_argument(
-        "--chain2", type=int, default=2, help="Chain2 number for LZ deployment"
-    )
-    parser.add_argument(
-        "--docker-manager",
-        type=str,
-        default="worker-001",
-        help="Docker swarm manager hostname",
-    )
-    parser.add_argument("--dvns", type=int, default=2, help="Number of DVNs")
-    parser.add_argument(
-        "--dvn-workers", type=int, default=2, help="Number of workers per DVN"
-    )
+    parser = argparse.ArgumentParser(description="LayerZero OFT deployment between two chains")
 
+    parser.add_argument("--chain1", type=int, default=1, help="Chain1 number for LZ deployment")
+    parser.add_argument("--chain2", type=int, default=2, help="Chain2 number for LZ deployment")
+    parser.add_argument(
+        "--docker-manager", 
+        type=str, default="worker-001", help="Docker swarm manager hostname")
+    parser.add_argument("--dvns", type=int, default=2, help="Number of DVNs")
+    parser.add_argument("--dvn-workers", type=int, default=2, help="Number of workers per DVN")
     parser.add_argument("--peer-pairs", type=int, default=1, help="Number of pairs of peers")
 
     args = parser.parse_args()
